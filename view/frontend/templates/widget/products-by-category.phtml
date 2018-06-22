@@ -1,0 +1,120 @@
+<?php
+
+$items = $block->getCategoryProduct();
+
+$type = 'widget-product-grid';
+
+$mode = 'grid';
+
+$image = 'new_products_content_widget_grid';
+
+$showWishlist = true;
+$showCompare  = true;
+$showCart     = true;
+$description  = false;
+
+?>
+<div class="block widget block-products-list <?= /* @noEscape */
+$mode ?>">
+
+    <div class="block-content">
+        <?= '<!-- ' . $image . '-->' ?>
+        <div class="products-<?= $mode ?> <?= $mode ?>">
+            <ol class="product-items <?= $type ?>">
+                <?php $iterator = 1; ?>
+                <?php foreach ($items as $_item): ?>
+
+                <?php if ($iterator++ != 1): ?></li><?php endif ?>
+                <li class="product-item">
+                    <div class="product-item-info">
+
+                        <?php
+                        $price      = $_item->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+                        $finalPrice = $_item->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+
+                        if ($finalPrice < $price): ?>
+                            <?php $_Percent = 100 - round(($finalPrice / $price) * 100); ?>
+                            <span class="special-price-discount">-<?php echo $_Percent; ?>%</span>
+                        <?php endif; ?>
+
+                        <div class="image">
+                            <a href="<?= $_item->getProductUrl() ?>" class="product-item-photo">
+                                <?= $block->getImageUrl($_item, $image) ?>
+                            </a>
+
+                            <?php if ($showWishlist || $showCompare || $showCart): ?>
+                                <div class="product-item-actions">
+                                    <?php if ($showCart): ?>
+                                        <div class="action">
+                                            <?php if ($_item->isSaleable()): ?>
+                                                <?php if ($_item->getTypeInstance()->hasRequiredOptions($_item)): ?>
+                                                    <button class="action tocart primary" data-mage-init='{"redirectUrl":{"url":"<?= $block->escapeUrl($block->getAddToCartUrl($_item)) ?>"}}' type="button" title="<?= $block->escapeHtmlAttr(__('Add to Cart')) ?>">
+                                                        <span><i class="fcf-icon-cart"></i></span>
+                                                    </button>
+                                                <?php else: ?>
+                                                    <?php
+                                                    $postDataHelper = $this->helper('Magento\Framework\Data\Helper\PostHelper');
+                                                    $postData = $postDataHelper->getPostData($block->getAddToCartUrl($_item), ['product' => $_item->getEntityId()])
+                                                    ?>
+                                                    <button class="action tocart primary" data-post='<?= /* @noEscape */
+                                                    $postData ?>' type="button" title="<?= $block->escapeHtmlAttr(__('Add to Cart')) ?>">
+                                                        <span><i class="fcf-icon-cart"></i></span>
+                                                    </button>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <?php if ($_item->getIsSalable()): ?>
+                                                    <div class="stock available">
+                                                        <span><?= $block->escapeHtml(__('In stock')) ?></span></div>
+                                                <?php else: ?>
+                                                    <div class="stock unavailable">
+                                                        <span><?= $block->escapeHtml(__('Out of stock')) ?></span>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if ($showWishlist): ?>
+                                        <div class="action">
+                                            <?php if ($this->helper('Magento\Wishlist\Helper\Data')->isAllow() && $showWishlist): ?>
+                                                <a href="#"
+                                                        data-post='<?= /* @noEscape */
+                                                        $block->getAddToWishlistParams($_item) ?>' class="action towishlist" data-action="add-to-wishlist" title="<?= $block->escapeHtmlAttr(__('Add to Wish List')) ?>">
+                                                    <span><i class="fcf-icon-heart"></i></span>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="action">
+                                        <a href="<?= $_item->getProductUrl() ?>">
+                                            <span><i class="fcf-icon-eye"></i></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="product-item-details">
+
+                            <strong class="product-item-name">
+                                <a title="<?= $block->escapeHtml($_item->getName()) ?>"
+                                        href="<?= $_item->getProductUrl() ?>"
+                                        class="product-item-link">
+                                    <?= $block->escapeHtml($_item->getName()) ?>
+                                </a>
+                            </strong>
+                            <?php
+                            echo $block->getProductPriceHtml($_item, $type);
+                            ?>
+                            <?php $compareHelper = $this->helper('Magento\Catalog\Helper\Product\Compare'); ?>
+                            <a href="#" class="action tocompare" data-compare="<?= $_item->getId(); ?>" data-post='<?= /* @noEscape */
+                            $compareHelper->getPostDataParams($_item) ?>' title="<?= __('Add to Compare') ?>">
+                                <span><?= __('Add to Compare') ?></span>
+                            </a>
+
+                        </div>
+                    </div>
+                    <?= ($iterator == count($items) + 1) ? '</li>' : '' ?>
+                    <?php endforeach ?>
+            </ol>
+        </div>
+    </div>
+</div>
